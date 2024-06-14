@@ -1,0 +1,74 @@
+CREATE TABLE IF NOT EXISTS players(
+    player_id INTEGER NOT NULL PRIMARY KEY,
+    p_name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS teams(
+    team_id INTEGER NOT NULL PRIMARY KEY,
+    t_name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS agents(
+    agent_id INTEGER NOT NULL PRIMARY KEY,
+    agent TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS matches(
+    match_id INTEGER NOT NULL PRIMARY KEY,
+    match_datetime TEXT NOT NULL,
+    match_map TEXT NOT NULL,
+    team_id1 INTEGER NOT NULL,
+    team_id2 INTEGER NOT NULL,
+    team1_score INTEGER NOT NULL,
+    team2_score INTEGER NOT NULL,
+    game_patch FLOAT NOT NULL,
+    FOREIGN KEY(team_id1) REFERENCES teams(team_id),
+    FOREIGN KEY(team_id2) REFERENCES teams(team_id)
+);
+
+CREATE TABLE IF NOT EXISTS player_match_stats(
+    rating FLOAT NOT NULL,
+    rating_attackers FLOAT NOT NULL,
+    rating_defenders FLOAT NOT NULL,
+    average_combat_score INTEGER NOT NULL,
+    average_combat_score_t INTEGER NOT NULL,
+    average_combat_score_ct INTEGER NOT NULL,
+    kills INTEGER NOT NULL,
+    kills_attackers INTEGER NOT NULL,
+    kills_defenders INTEGER NOT NULL,
+    death INTEGER NOT NULL,
+    death_t INTEGER NOT NULL,
+    death_ct INTEGER NOT NULL,
+    assist INTEGER NOT NULL,
+    assist_t INTEGER NOT NULL,
+    assist_ct INTEGER NOT NULL,
+    total_kills_minus_deaths INTEGER NOT NULL,
+    total_kills_minus_deaths_t INTEGER NOT NULL,
+    total_kills_minus_deaths_ct INTEGER NOT NULL,
+    kill_assist_survive_trade FLOAT NOT NULL,
+    kill_assist_survive_trade_t FLOAT NOT NULL,
+    kill_assist_survive_trade_ct FLOAT NOT NULL,
+    round_average_damage INTEGER NOT NULL,
+    round_average_damage_t INTEGER NOT NULL,
+    round_average_damage_ct INTEGER NOT NULL,
+    headshot FLOAT NOT NULL,
+    headshot_t FLOAT NOT NULL,
+    headshot_ct FLOAT NOT NULL,
+    first_kill INTEGER NOT NULL,
+    first_kill_t INTEGER NOT NULL,
+    first_kill_ct INTEGER NOT NULL,
+    first_death INTEGER NOT NULL,
+    first_death_t INTEGER NOT NULL,
+    first_death_ct INTEGER NOT NULL,
+    kill_minus_deaths INTEGER NOT NULL,
+    kill_minus_deaths_t INTEGER NOT NULL,
+    kill_minus_deaths_ct INTEGER NOT NULL,
+    match_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL,
+    team_id INTEGER NOT NULL,
+    agent_id INTEGER NOT NULL,
+    FOREIGN KEY(match_id) REFERENCES matches(match_id),
+    FOREIGN KEY(player_id) REFERENCES players(player_id),
+    FOREIGN KEY(team_id) REFERENCES teams(team_id),
+    FOREIGN KEY(agent_id) REFERENCES agents(agent_id)
+);

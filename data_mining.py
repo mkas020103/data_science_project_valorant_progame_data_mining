@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[7]:
+# In[1]:
 
 
 import pandas as pd
@@ -12,7 +12,7 @@ import seaborn as sns
 import sqlite3
 
 
-# In[12]:
+# In[2]:
 
 
 class integration:
@@ -319,27 +319,40 @@ class integration:
             print('Failed to integrate data to database.')
 
 
-# In[ ]:
+# In[8]:
 
 
 class selection:
-    def __init__(self):
-        self.conn = sqlite3.connect(db, timeout=20)
+    def __init__(self, db):
+        self.conn = None
+        self.db = db
+        file = open("schema.txt", "r")
+        content = file.read()
+        self.db_schema = content
+        file.close()
 
     def get_data(self, query):
+        self.conn = sqlite3.connect(self.db, timeout=20)
         cur = self.conn.cursor()
         cur.execute('BEGIN')
         try:
+            query = query.strip()
+            token = query.split(' ',2)
+            if token[0].lower() != 'select':
+                raise ValueError('"SELECT" command only.')
             # execute and store data
             cur.execute(query)
-            data = cursor.fetchall()
+            data = cur.fetchall()
+
+            # Get the column names from the cursor description
+            column_names = [desc[0] for desc in cur.description]
 
             # close connections
             cur.close()
             self.conn.close()
 
             # convert and return pandas dataframe
-            return pd.DataFrame(data)
+            return pd.DataFrame(data, columns=column_names)
             
         except Exception as e:
             # close connections and relay error message
@@ -348,11 +361,28 @@ class selection:
             print(e)
             print('Failed to select data from database.')
 
+    def schema(self):
+        print(self.db_schema)
 
-# In[ ]:
+
+# In[23]:
 
 
 class visualization:
     def __init__(self):
         pass
+
+    def top(self, df:pd.DataFrame, dfx, dfy, x_name:str = None, y_name:str = None, title:str = None, color:str = None):
+        plt.figure(figsize=(8, 6))
+        if color != None:
+            plt.bar(df[dfx], df[dfy], color=color)
+        else:
+            plt.bar(df[dfx], df[dfy], color='red')
+        plt.xlabel(x_name,fontsize=12)
+        plt.ylabel(y_name,fontsize=12)
+        if title != None:
+            plt.title(title, fontsize=14)
+        plt.grid(axis='y', alpha=0.7)
+        plt.tight_layout()
+        plt.show()
 
