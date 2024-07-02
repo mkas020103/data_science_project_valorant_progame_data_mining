@@ -385,8 +385,14 @@ class visualization:
         plt.show()
 
     def pie(self, df: pd.DataFrame, dfx, dfy, title: str = None):
+        def custom_autopct(pct):
+            return '{:.1f}%'.format(pct)
+        
+        # Multiply the values by 100 if they are fractions
+        values = df[dfy] * 100
+        
         plt.figure(figsize=(8, 6))
-        plt.pie([x*100 for x in df[dfy]], labels=df[dfx], autopct="%.2f%%", startangle=140)
+        plt.pie(values, labels=df[dfx], autopct=custom_autopct, startangle=140)
         plt.axis('equal')
         if title is not None:
             plt.title(title, fontsize=14)
