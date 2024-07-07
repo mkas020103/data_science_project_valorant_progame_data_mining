@@ -392,3 +392,29 @@ class visualization:
             plt.title(title, fontsize=14)
         plt.tight_layout()
         plt.show()
+
+    def donut(self, df: pd.DataFrame, dfx, dfy, title=None):
+        plt.figure(figsize=(8, 6))
+        sizes = [df[dfx].iloc[0], df[dfy].iloc[0]]
+        labels = [dfx.capitalize(), dfy.capitalize()]
+        plt.pie(sizes, labels=labels, autopct="%.2f%%", startangle=140)
+        centre_circle = plt.Circle((0, 0), 0.70, fc='white')
+        fig = plt.gcf()
+        fig.gca().add_artist(centre_circle)
+        plt.axis('equal')
+        if title is not None:
+            plt.title(title, fontsize=14)
+        plt.tight_layout()
+        plt.show()
+
+    def bar_graph(self, df: pd.DataFrame, dfx, dfy, title=None):
+        plt.figure(figsize=(10, 6))
+        plt.bar(df[dfx], df[dfy], color='skyblue')
+        plt.xlabel(dfx.capitalize())
+        plt.ylabel(dfy.capitalize())
+        if title is not None:
+            plt.title(title, fontsize=14)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.show()
+
