@@ -440,12 +440,12 @@ class visualization:
         plt.figure(figsize=(10, 6))
         plt.scatter(df[dfx], df[dfy], alpha=0.4)
 
-        if x_name is None:
+        if x_name is not None:
             plt.xlabel(x_name.capitalize())
         if y_name is not None:
             plt.ylabel(y_name.capitalize())
 
-        if title is None:
+        if title is not None:
             plt.title(title, fontsize=14)
 
         plt.tight_layout()
