@@ -403,8 +403,8 @@ class visualization:
 
     def pie(self, df: pd.DataFrame, dfx, dfy, title: str = None):
         plt.figure(figsize=(8, 6))
-        plt.pie(df[dfy].values, labels=df[dfx], autopct=lambda p: f'{
-                p*sum(df[dfy].values)/100:.2f}%', startangle=140)
+        # plt.pie(df[dfy].values, labels=df[dfx], autopct=lambda p: f'{p*sum(df[dfy].values)/100:.2f}%', startangle=140)
+        plt.pie(df[dfy].values, labels=df[dfx], autopct="%.2f%%", startangle=140)
         plt.axis('equal')
         if title is not None:
             plt.title(title, fontsize=14)
