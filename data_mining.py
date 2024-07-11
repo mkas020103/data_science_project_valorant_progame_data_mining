@@ -6,7 +6,7 @@
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import sqlite3
 
 
@@ -23,7 +23,7 @@ class integration:
             # convert csv to dataframe
             self.df = pd.read_csv(csv, low_memory=False)
             self.conn = None
-            
+
             # default data holder for each table in sqlite
             self.players = None
             self.teams = None
@@ -88,13 +88,13 @@ class integration:
         """
         Preprocesses the data before splitting it (take note all texts are not lowercase or changed to make a value unique).
         Split the data into tables.
-        
+
         parameters:
             none
         """
         try:
             # remove rows with null values
-            self.df.dropna(inplace = True)
+            self.df.dropna(inplace=True)
 
             # rename column names
             self.df = self.df.rename(columns=self.column_names)
@@ -103,38 +103,48 @@ class integration:
             # print("Columns after renaming:", self.df.columns)
 
             # split the data into tables adding primary and reference key
-            
+
             self.players = self.create_table('p_name', 'player', 9143570)
-            
+
             self.teams = self.create_table('t_name', 'team', 10240)
-            
+
             self.agents = self.create_table('agent', 'agent', 463850)
-            
-            self.matches = self.df[['match_datetime', 'game_patch','t_name', 'match_map','team1_score','team2_score','team1','team2']].drop_duplicates()
+
+            self.matches = self.df[['match_datetime', 'game_patch', 't_name', 'match_map',
+                                    'team1_score', 'team2_score', 'team1', 'team2']].drop_duplicates()
             self.matches['match_id'] = self.df['Unnamed: 0'] + 641094570
-            
+
             # merge teams to get team_id1 and team_id2
-            self.matches = self.matches.merge(self.teams[['t_name', 'team_id']], left_on='team1', right_on='t_name', how='left')
+            self.matches = self.matches.merge(
+                self.teams[['t_name', 'team_id']], left_on='team1', right_on='t_name', how='left')
             self.matches.rename(columns={'team_id': 'team_id1'}, inplace=True)
-            
-            self.matches = self.matches.merge(self.teams[['t_name', 'team_id']], left_on='team2', right_on='t_name', how='left')
+
+            self.matches = self.matches.merge(
+                self.teams[['t_name', 'team_id']], left_on='team2', right_on='t_name', how='left')
             self.matches.rename(columns={'team_id': 'team_id2'}, inplace=True)
-            
+
             # concatenate the stats to the id of each table
             merge_m_s = self.df.merge(self.matches[['t_name', 'team1_score', 'team2_score', 'team_id1', 'team_id2', 'team1', 'team2', 'match_id']],
-              on=['t_name', 'team1_score', 'team2_score', 'team1', 'team2'],
-              how='left')
-            
-            self.matches.drop(columns=['team1','team2','t_name_y','t_name_x','t_name'], inplace=True)
-            merge_m_s.drop(columns=['game_patch','team1_score', 'team2_score', 'match_map', 'match_datetime'], inplace=True)
-            
-            merge_m_p_s = merge_m_s.merge(self.players[['p_name', 'player_id']], on=['p_name'], how='left')
+                                      on=['t_name', 'team1_score',
+                                          'team2_score', 'team1', 'team2'],
+                                      how='left')
+
+            self.matches.drop(
+                columns=['team1', 'team2', 't_name_y', 't_name_x', 't_name'], inplace=True)
+            merge_m_s.drop(columns=['game_patch', 'team1_score',
+                           'team2_score', 'match_map', 'match_datetime'], inplace=True)
+
+            merge_m_p_s = merge_m_s.merge(
+                self.players[['p_name', 'player_id']], on=['p_name'], how='left')
             merge_m_p_s.drop(columns=['p_name'], inplace=True)
-            
-            merge_m_p_t_s = merge_m_p_s.merge(self.teams[['t_name', 'team_id']], on=['t_name'], how='left')
-            merge_m_p_t_s.drop(columns=['t_name','team_id1','team_id2','team1','team2'], inplace=True)
-            
-            self.match_stat = merge_m_p_t_s.merge(self.agents[['agent', 'agent_id']], on=['agent'], how='left')
+
+            merge_m_p_t_s = merge_m_p_s.merge(
+                self.teams[['t_name', 'team_id']], on=['t_name'], how='left')
+            merge_m_p_t_s.drop(
+                columns=['t_name', 'team_id1', 'team_id2', 'team1', 'team2'], inplace=True)
+
+            self.match_stat = merge_m_p_t_s.merge(
+                self.agents[['agent', 'agent_id']], on=['agent'], how='left')
             self.match_stat.drop(columns=['agent', 'Unnamed: 0'], inplace=True)
             self.match_stat.dropna(inplace=True)
             self.matches.dropna(inplace=True)
@@ -151,7 +161,7 @@ class integration:
     def create_table(self, column_name, value_type, id_value):
         """
         Create a table with the required data
-        
+
         parameters:
             column_name - the name of hhe column of both self.df and table to be created
             value_type - the type of data being inputted (i.e. person, team, entity, time)
@@ -160,17 +170,20 @@ class integration:
         try:
             # Verify column existence before processing
             if column_name not in self.df.columns:
-                raise ValueError(f"Column {column_name} does not exist in DataFrame")
+                raise ValueError(
+                    f"Column {column_name} does not exist in DataFrame")
 
             # Apply the function to the column
             split_df = self.df[[column_name]].drop_duplicates()
-            split_df[column_name] = split_df[column_name].apply(self.filter_non_numeric)
-            
+            split_df[column_name] = split_df[column_name].apply(
+                self.filter_non_numeric)
+
             # Drop rows where column_name is None
             split_df = split_df.dropna(subset=[column_name])
-            
+
             # Add ID to each value
-            split_df['{}_id'.format(value_type)] = [x + id_value for x in range(len(split_df[column_name]))]
+            split_df['{}_id'.format(value_type)] = [
+                x + id_value for x in range(len(split_df[column_name]))]
             return split_df
         except Exception as e:
             print(e)
@@ -180,23 +193,23 @@ class integration:
     def filter_non_numeric(value):
         """
         Filter out numeric values from the data.
-        
+
         parameters:
             value - the value to check
         """
         # Handle the string and numeric values in a column, remove numbers
         if isinstance(value, (int, float)):
-            return None 
+            return None
         try:
             float(value)
             return None
         except ValueError:
             return value
-    
+
     def create_table_load_data(self, db):
         """
         Create table and Load data to database
-        
+
         parameters:
             none
         """
@@ -291,24 +304,28 @@ class integration:
                 	FOREIGN KEY(agent_id) REFERENCES agents(agent_id)
                 );
             ''')
-            
+
             # add to the respective table the values
-            self.players.to_sql('players', self.conn, if_exists='append', index=False)
-            
-            self.teams.to_sql('teams', self.conn, if_exists='append', index=False)
-            
-            self.agents.to_sql('agents', self.conn, if_exists='append', index=False)
-            
-            self.matches.to_sql('matches', self.conn, if_exists='append', index=False)
-            
-            self.match_stat.to_sql('player_match_stats', self.conn, if_exists='append', index=False)
-            
+            self.players.to_sql('players', self.conn,
+                                if_exists='append', index=False)
+
+            self.teams.to_sql('teams', self.conn,
+                              if_exists='append', index=False)
+
+            self.agents.to_sql('agents', self.conn,
+                               if_exists='append', index=False)
+
+            self.matches.to_sql('matches', self.conn,
+                                if_exists='append', index=False)
+
+            self.match_stat.to_sql('player_match_stats',
+                                   self.conn, if_exists='append', index=False)
 
             # close and commit all object
             self.conn.commit()
             cur.close()
             self.conn.close()
-            
+
             print('Successfully integrated data to database.')
         except Exception as e:
             cur.close()
@@ -335,7 +352,7 @@ class selection:
         cur.execute('BEGIN')
         try:
             query = query.strip()
-            token = query.split(' ',2)
+            token = query.split(' ', 2)
             if token[0].lower() != 'select':
                 raise ValueError('"SELECT" command only.')
             # execute and store data
@@ -351,7 +368,7 @@ class selection:
 
             # convert and return pandas dataframe
             return pd.DataFrame(data, columns=column_names)
-            
+
         except Exception as e:
             # close connections and relay error message
             cur.close()
@@ -370,14 +387,14 @@ class visualization:
     def __init__(self):
         pass
 
-    def top(self, df:pd.DataFrame, dfx, dfy, x_name:str = None, y_name:str = None, title:str = None, color:str = None):
+    def top(self, df: pd.DataFrame, dfx, dfy, x_name: str = None, y_name: str = None, title: str = None, color: str = None):
         plt.figure(figsize=(8, 6))
         if color != None:
             plt.bar(df[dfx], df[dfy], color=color)
         else:
             plt.bar(df[dfx], df[dfy], color='red')
-        plt.xlabel(x_name,fontsize=12)
-        plt.ylabel(y_name,fontsize=12)
+        plt.xlabel(x_name, fontsize=12)
+        plt.ylabel(y_name, fontsize=12)
         if title != None:
             plt.title(title, fontsize=14)
         plt.grid(axis='y', alpha=0.7)
@@ -386,7 +403,8 @@ class visualization:
 
     def pie(self, df: pd.DataFrame, dfx, dfy, title: str = None):
         plt.figure(figsize=(8, 6))
-        plt.pie(df[dfy].values, labels=df[dfx], autopct=lambda p: f'{p*sum(df[dfy].values)/100:.2f}%', startangle=140)
+        plt.pie(df[dfy].values, labels=df[dfx], autopct=lambda p: f'{
+                p*sum(df[dfy].values)/100:.2f}%', startangle=140)
         plt.axis('equal')
         if title is not None:
             plt.title(title, fontsize=14)
@@ -418,3 +436,17 @@ class visualization:
         plt.tight_layout()
         plt.show()
 
+    def scatter_plot(self, df: pd.DataFrame, dfx: str, dfy: str, x_name: str = None, y_name: str = None, title: str = None):
+        plt.figure(figsize=(10, 6))
+        plt.scatter(df[dfx], df[dfy], alpha=0.4)
+
+        if x_name is None:
+            plt.xlabel(x_name.capitalize())
+        if y_name is not None:
+            plt.ylabel(y_name.capitalize())
+
+        if title is None:
+            plt.title(title, fontsize=14)
+
+        plt.tight_layout()
+        plt.show()
