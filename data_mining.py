@@ -8,6 +8,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import sqlite3
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.metrics import mean_squared_error
+from mpl_toolkits.mplot3d import Axes3D
 
 
 # In[2]:
@@ -450,3 +454,66 @@ class visualization:
 
         plt.tight_layout()
         plt.show()
+    
+    def knn(self, d: str, X: str, y: str):
+        # Split the data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        def cluster_kills_deaths_assists():
+            # Fit k-NN model with optimal k (let's assume k=3 here for demonstration)
+            optimal_k = 3
+            knn = KNeighborsRegressor(n_neighbors=optimal_k)
+            knn.fit(X_train, y_train)
+
+            # Predict on training and testing data
+            y_train_pred = knn.predict(X_train)
+            y_test_pred = knn.predict(X_test)
+
+            # Combine training and test sets for visualization
+            X_combined = np.vstack((X_train, X_test))
+            y_combined_pred = np.hstack((y_train_pred, y_test_pred))
+
+            # 3D scatter plot
+            fig = plt.figure(figsize=(10, 8))
+            ax = fig.add_subplot(111, projection='3d')
+            scatter = ax.scatter(X_combined[:, 0], X_combined[:, 1], X_combined[:, 2], c=y_combined_pred, cmap='viridis', s=50)
+            
+            ax.set_xlabel('Kills')
+            ax.set_ylabel('Deaths')
+            ax.set_zlabel('Assists')
+            ax.set_title('k-NN Clustering Based on Predictions')
+
+            # Add color bar
+            cbar = fig.colorbar(scatter)
+            cbar.set_label('Predicted Average Combat Score')
+
+            plt.show()
+            
+        def cluster_kills_deaths():
+            # Fit k-NN model with optimal k (let's assume k=3 here for demonstration)
+            optimal_k = 3
+            knn = KNeighborsRegressor(n_neighbors=optimal_k)
+            knn.fit(X_train, y_train)
+
+            # Predict on training and testing data
+            y_train_pred = knn.predict(X_train)
+            y_test_pred = knn.predict(X_test)
+
+            # Combine training and test sets for visualization
+            X_combined = np.vstack((X_train, X_test))
+            y_combined_pred = np.hstack((y_train_pred, y_test_pred))
+
+            # 2D scatter plot
+            plt.figure(figsize=(8, 6))
+            scatter = plt.scatter(X_combined[:, 0], X_combined[:, 1], c=y_combined_pred, cmap='viridis', s=50)
+            plt.xlabel('Kills')
+            plt.ylabel('Deaths')
+            plt.title('k-NN Clustering Based on Predictions')
+
+            # Add color bar
+            cbar = plt.colorbar(scatter)
+            cbar.set_label('Predicted Average Combat Score')
+
+            plt.show()
+        cluster_kills_deaths_assists()
+        cluster_kills_deaths()
