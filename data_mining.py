@@ -506,7 +506,7 @@ class visualization:
         # 2D scatter plot
         plt.figure(figsize=(8, 6))
         scatter = plt.scatter(X_combined[:, 0], X_combined[:, 1], c=y_combined_pred, cmap='viridis', s=50)
-        plt.xlabel('Kills')
+        plt.xlabel('Assist')
         plt.ylabel('Deaths')
         plt.title('k-NN Clustering Based on Predictions')
 
